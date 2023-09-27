@@ -1,45 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Website</title>
-    <style>
-        /* CSS styles */
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f0f0f0;
-        }
-        header {
-            background-color: #333;
-            color: #fff;
-            padding: 10px;
-            text-align: center;
-        }
-        main {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-        }
-    </style>
+    <title>Upvote/Downvote and Comments</title>
+    <!-- Include Firebase JavaScript libraries -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js"></script>
 </head>
 <body>
-    <header>
-        <h1>Welcome to My Website</h1>
-    </header>
-    <main>
-        <h2>About Us</h2>
-        <p>This is a simple website that you can easily modify to suit your needs. It uses HTML, CSS, and JavaScript.</p>
-        <h2>Contact Us</h2>
-        <p>Contact us at: <a href="mailto:ellixtabs@gmail.com">ellixtabs@gmail.com</a></p>
-    </main>
+    <h1>Item Name</h1>
+    <button id="upvoteButton">Upvote</button>
+    <button id="downvoteButton">Downvote</button>
+    <p>Upvotes: <span id="upvotesCount">0</span></p>
+    <p>Downvotes: <span id="downvotesCount">0</span></p>
+
+    <!-- Comments Section -->
+    <h2>Comments</h2>
+    <input type="text" id="commentInput" placeholder="Add a comment">
+    <button id="addCommentButton">Add Comment</button>
+    <ul id="commentsList"></ul>
+
     <script>
-        // JavaScript code (if needed)
-        // You can add your JavaScript functions or code here
+        var firebaseConfig = {
+            apiKey: "AIzaSyCVlX2d9m1yj1y6bZgoZabQW4xaJ8rCG-Q",
+            authDomain: "skillbridge-ranks.firebaseapp.com",
+            projectId: "skillbridge-ranks",
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        var database = firebase.database();
+        var upvotesRef = database.ref("item/upvotes");
+        var downvotesRef = database.ref("item/downvotes");
+        var commentsRef = database.ref("item/comments");
+
+        // Update vote counts and comments when page loads
+        upvotesRef.on("value", function (snapshot) {
+            document.getElementById("upvotesCount").textContent = snapshot.val() || 0;
+        });
+
+        downvotesRef.on("value", function (snapshot) {
+            document.getElementById("downvotesCount").textContent = snapshot.val() || 0;
+        });
+
+        commentsRef.on("child_added", function (snapshot) {
+            var comment = snapshot.val();
+            var commentList = document.getElementById("commentsList");
+            var listItem = document.createElement("li");
+            listItem.textContent = comment;
+            commentList.appendChild(listItem);
+        });
+
+        // Handle upvote and downvote buttons
+        document.getElementById("upvoteButton").addEventListener("click", function () {
+            upvotesRef.transaction(function (currentValue) {
+                return (currentValue || 0) + 1;
+            });
+        });
+
+        document.getElementById("downvoteButton").addEventListener("click", function () {
+            downvotesRef.transaction(function (currentValue) {
+                return (currentValue || 0) + 1;
+            });
+        });
+
+        // Handle adding comments
+        document.getElementById("addCommentButton").addEventListener("click", function () {
+            var commentInput = document.getElementById("commentInput");
+            var newComment = commentInput.value.trim();
+
+            if (newComment !== "") {
+                commentsRef.push(newComment);
+                commentInput.value = "";
+            }
+        });
     </script>
 </body>
 </html>
