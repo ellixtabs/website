@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Print Current Page</title>
+    <style>
+        /* Define a print button style */
+        .print-button {
+            display: none; /* Hide the button initially */
+        }
+    </style>
+</head>
+<body>
+    <!-- Content to be printed -->
+    <h1>This is the content of the page</h1>
+    <p>Replace this with your page content.</p>
+
+    <!-- Print button -->
+    <button id="printButton" class="print-button" onclick="printPage()">Export</button>
+
+    <script>
+        // Function to print the current page
+        function printPage() {
+            // Hide the print button while printing
+            document.getElementById('printButton').style.display = 'none';
+
+            // Print the current page
+            window.print();
+
+            // Show the print button again after printing
+            document.getElementById('printButton').style.display = 'block';
+        }
+
+        // Show the print button after the page has loaded
+        window.onload = function () {
+            document.getElementById('printButton').style.display = 'block';
+        };
+    </script>
+</body>
+</html>
