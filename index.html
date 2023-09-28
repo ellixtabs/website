@@ -8,18 +8,33 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
 
         .item-content {
             display: flex;
-            align-item: left
+            align-items: center;
             justify-content: space-between;
             width: 100%;
+            margin-top: 10px;
         }
 
         button {
-            margin: .1cm;
-            padding: 0.1cm;
+            margin: 0.2em;
+            padding: 0.2em 0.5em;
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
         }
 
         .comments {
@@ -29,12 +44,27 @@
         }
 
         .comments input {
-            width: 50%;
+            width: 98%;
             padding: 5px;
+            margin-bottom: 10px;
+        }
+
+        .comments button.submit-comment {
+            background-color: #28a745;
+        }
+
+        .comments button.submit-comment:hover {
+            background-color: #1e7e34;
+        }
+
+        .commentList p {
+            margin: 5px 0;
         }
     </style>
+    
 </head>
 <body>
+    <h1>SkillBridge Ranker</h1>
     <div id="itemsContainer">
         <!-- Items will be dynamically added here -->
     </div>
@@ -49,64 +79,68 @@
             }
 
             createItemElement() {
-    const itemDiv = document.createElement("div");
-    itemDiv.classList.add("container");
+                const itemDiv = document.createElement("div");
+                itemDiv.classList.add("container");
 
-    const itemContentDiv = document.createElement("div");
-    itemContentDiv.classList.add("item-content");
+                const itemContentDiv = document.createElement("div");
+                itemContentDiv.classList.add("item-content");
 
-    this.numberSpan = document.createElement("span");
-    this.numberSpan.classList.add("number");
-    this.numberSpan.textContent = this.number;
+                this.numberSpan = document.createElement("span");
+                this.numberSpan.classList.add("number");
+                this.numberSpan.textContent = this.number;
 
-    this.increaseButton = document.createElement("button");
-    this.increaseButton.textContent = "↑";
+                // Add classes to the arrow buttons
+                this.increaseButton = document.createElement("button");
+                this.increaseButton.classList.add("arrow-button");
+                this.increaseButton.textContent = "↑";
 
-    this.decreaseButton = document.createElement("button");
-    this.decreaseButton.textContent = "↓";
+                this.decreaseButton = document.createElement("button");
+                this.decreaseButton.classList.add("arrow-button");
+                this.decreaseButton.textContent = "↓";
 
-    this.textSpan = document.createElement("span");
-    this.textSpan.textContent = this.name;
+                this.textSpan = document.createElement("span");
+                this.textSpan.textContent = this.name;
 
-    this.commentsButton = document.createElement("button");
-    this.commentsButton.textContent = "Comments";
+                this.commentsButton = document.createElement("button");
+                this.commentsButton.textContent = "Comments";
 
-    this.commentsDiv = document.createElement("div");
-    this.commentsDiv.classList.add("comments");
+                this.commentsDiv = document.createElement("div");
+                this.commentsDiv.classList.add("comments");
 
-    this.commentsButton.addEventListener("click", () => this.toggleComments());
+                this.commentsButton.addEventListener("click", () => this.toggleComments());
 
-    this.commentsInput = document.createElement("input");
-    this.commentsInput.type = "text";
-    this.commentsInput.placeholder = "Leave a comment...";
-    this.commentsInput.style.display = "none";
+                this.commentsInput = document.createElement("input");
+                this.commentsInput.type = "text";
+                this.commentsInput.placeholder = "Leave a comment...";
+                this.commentsInput.style.display = "none";
 
-    // Add an event listener for the submit comment button
-    this.submitCommentButton = document.createElement("btto");
-    this.submitCommentButton.addEventListener("click", () => this.leaveComment());
+                // Create a submit comment button within the comments section
+                this.submitCommentButton = document.createElement("button");
+                this.submitCommentButton.textContent = "Submit";
 
-    // Append elements to the itemDiv
-    itemContentDiv.appendChild(this.numberSpan);
-    itemContentDiv.appendChild(this.decreaseButton);
-    itemContentDiv.appendChild(this.increaseButton);
-    itemContentDiv.appendChild(this.textSpan);
-    itemContentDiv.appendChild(this.commentsButton);
+                // Append elements to the itemDiv
+                itemContentDiv.appendChild(this.numberSpan);
+                itemContentDiv.appendChild(this.increaseButton);
+                itemContentDiv.appendChild(this.decreaseButton);
+                itemContentDiv.appendChild(this.textSpan);
+                itemContentDiv.appendChild(this.commentsButton);
 
-    itemDiv.appendChild(itemContentDiv);
-    itemDiv.appendChild(this.commentsInput);
-    itemDiv.appendChild(this.commentsDiv);
-    itemDiv.appendChild(this.submitCommentButton); // Append the submit button
+                itemDiv.appendChild(itemContentDiv);
+                itemDiv.appendChild(this.commentsDiv);
+                // Move the submit comment button to the comments section
+                this.commentsDiv.appendChild(this.commentsInput);
+                this.commentsDiv.appendChild(this.submitCommentButton);
 
-    return itemDiv;
-}
-
+                return itemDiv;
+            }
 
             toggleComments() {
                 if (this.commentsDiv.style.display === "none" || this.commentsDiv.style.display === "") {
                     this.commentsDiv.style.display = "block";
                     this.commentsDiv.innerHTML = `<input type="text" placeholder="Leave a comment...">
-                                                 <button onclick="items[${this.index}].leaveComment()">Submit</button>
                                                  <div class="commentList">${this.renderComments()}</div>`;
+                    // Move the submit comment button to the comments section
+                    this.commentsDiv.appendChild(this.submitCommentButton);
                 } else {
                     this.commentsDiv.style.display = "none";
                 }
@@ -124,14 +158,16 @@
             }
 
             renderComments() {
-                return this.comments.map(comment => `<p>${comment}</p>`).join("");
+                // Reverse the order of comments to show newest first
+                const reversedComments = [...this.comments].reverse();
+                return reversedComments.map(comment => `<p>${comment}</p>`).join("");
             }
         }
 
         const itemsData = [
-            { name: "Allegiant Giving", number: 1 },
-            { name: "7 Eagle", number: 1 },
-            { name: "Adobe", number: 1 },
+            { name: "Allegiant Giving", number: 0 },
+            { name: "7 Eagle", number: 0 },
+            { name: "Adobe", number: 0 },
             // Add more items here if needed
         ];
 
@@ -145,24 +181,24 @@
         });
 
         function updateSortOrder() {
-    items.sort((a, b) => b.number - a.number);
-    itemsContainer.innerHTML = ""; // Clear the old container
+            items.sort((a, b) => b.number - a.number);
+            itemsContainer.innerHTML = ""; // Clear the old container
 
-    // Create a new container and add sorted items
-    const newItemsContainer = document.createElement("div");
-    items.forEach((item) => {
-        newItemsContainer.appendChild(item.element);
-    });
+            // Create a new container and add sorted items
+            const newItemsContainer = document.createElement("div");
+            items.forEach((item) => {
+                newItemsContainer.appendChild(item.element);
+            });
 
-    // Append the new container to the itemsContainer
-    itemsContainer.appendChild(newItemsContainer);
+            // Append the new container to the itemsContainer
+            itemsContainer.appendChild(newItemsContainer);
 
-    // Restore event listeners for submit comment buttons
-    items.forEach((item, index) => {
-        const submitCommentButton = item.element.querySelector(".comments button");
-        submitCommentButton.addEventListener("click", () => item.leaveComment());
-    });
-}
+            // Restore event listeners for submit comment buttons
+            items.forEach((item, index) => {
+                const submitCommentButton = item.element.querySelector(".comments button");
+                submitCommentButton.addEventListener("click", () => item.leaveComment());
+            });
+        }
 
         items.forEach((item, index) => {
             item.index = index;
