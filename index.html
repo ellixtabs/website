@@ -1,76 +1,184 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Upvote/Downvote and Comments</title>
-    <!-- Include Firebase JavaScript libraries -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.2/firebase-database.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .item-content {
+            display: flex;
+            align-item: left
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        button {
+            margin: .1cm;
+            padding: 0.1cm;
+        }
+
+        .comments {
+            display: none;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .comments input {
+            width: 50%;
+            padding: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Item Name</h1>
-    <button id="upvoteButton">Upvote</button>
-    <button id="downvoteButton">Downvote</button>
-    <p>Upvotes: <span id="upvotesCount">0</span></p>
-    <p>Downvotes: <span id="downvotesCount">0</span></p>
-
-    <!-- Comments Section -->
-    <h2>Comments</h2>
-    <input type="text" id="commentInput" placeholder="Add a comment">
-    <button id="addCommentButton">Add Comment</button>
-    <ul id="commentsList"></ul>
+    <div id="itemsContainer">
+        <!-- Items will be dynamically added here -->
+    </div>
 
     <script>
-        var firebaseConfig = {
-            apiKey: "AIzaSyCVlX2d9m1yj1y6bZgoZabQW4xaJ8rCG-Q",
-            authDomain: "skillbridge-ranks.firebaseapp.com",
-            projectId: "skillbridge-ranks",
-        };
-        firebase.initializeApp(firebaseConfig);
-
-        var database = firebase.database();
-        var upvotesRef = database.ref("item/upvotes");
-        var downvotesRef = database.ref("item/downvotes");
-        var commentsRef = database.ref("item/comments");
-
-        // Update vote counts and comments when page loads
-        upvotesRef.on("value", function (snapshot) {
-            document.getElementById("upvotesCount").textContent = snapshot.val() || 0;
-        });
-
-        downvotesRef.on("value", function (snapshot) {
-            document.getElementById("downvotesCount").textContent = snapshot.val() || 0;
-        });
-
-        commentsRef.on("child_added", function (snapshot) {
-            var comment = snapshot.val();
-            var commentList = document.getElementById("commentsList");
-            var listItem = document.createElement("li");
-            listItem.textContent = comment;
-            commentList.appendChild(listItem);
-        });
-
-        // Handle upvote and downvote buttons
-        document.getElementById("upvoteButton").addEventListener("click", function () {
-            upvotesRef.transaction(function (currentValue) {
-                return (currentValue || 0) + 1;
-            });
-        });
-
-        document.getElementById("downvoteButton").addEventListener("click", function () {
-            downvotesRef.transaction(function (currentValue) {
-                return (currentValue || 0) + 1;
-            });
-        });
-
-        // Handle adding comments
-        document.getElementById("addCommentButton").addEventListener("click", function () {
-            var commentInput = document.getElementById("commentInput");
-            var newComment = commentInput.value.trim();
-
-            if (newComment !== "") {
-                commentsRef.push(newComment);
-                commentInput.value = "";
+        class Item {
+            constructor(name, number) {
+                this.name = name;
+                this.number = number;
+                this.comments = [];
+                this.element = this.createItemElement();
             }
+
+            createItemElement() {
+    const itemDiv = document.createElement("div");
+    itemDiv.classList.add("container");
+
+    const itemContentDiv = document.createElement("div");
+    itemContentDiv.classList.add("item-content");
+
+    this.numberSpan = document.createElement("span");
+    this.numberSpan.classList.add("number");
+    this.numberSpan.textContent = this.number;
+
+    this.increaseButton = document.createElement("button");
+    this.increaseButton.textContent = "↑";
+
+    this.decreaseButton = document.createElement("button");
+    this.decreaseButton.textContent = "↓";
+
+    this.textSpan = document.createElement("span");
+    this.textSpan.textContent = this.name;
+
+    this.commentsButton = document.createElement("button");
+    this.commentsButton.textContent = "Comments";
+
+    this.commentsDiv = document.createElement("div");
+    this.commentsDiv.classList.add("comments");
+
+    this.commentsButton.addEventListener("click", () => this.toggleComments());
+
+    this.commentsInput = document.createElement("input");
+    this.commentsInput.type = "text";
+    this.commentsInput.placeholder = "Leave a comment...";
+    this.commentsInput.style.display = "none";
+
+    // Add an event listener for the submit comment button
+    this.submitCommentButton = document.createElement("btto");
+    this.submitCommentButton.addEventListener("click", () => this.leaveComment());
+
+    // Append elements to the itemDiv
+    itemContentDiv.appendChild(this.numberSpan);
+    itemContentDiv.appendChild(this.decreaseButton);
+    itemContentDiv.appendChild(this.increaseButton);
+    itemContentDiv.appendChild(this.textSpan);
+    itemContentDiv.appendChild(this.commentsButton);
+
+    itemDiv.appendChild(itemContentDiv);
+    itemDiv.appendChild(this.commentsInput);
+    itemDiv.appendChild(this.commentsDiv);
+    itemDiv.appendChild(this.submitCommentButton); // Append the submit button
+
+    return itemDiv;
+}
+
+
+            toggleComments() {
+                if (this.commentsDiv.style.display === "none" || this.commentsDiv.style.display === "") {
+                    this.commentsDiv.style.display = "block";
+                    this.commentsDiv.innerHTML = `<input type="text" placeholder="Leave a comment...">
+                                                 <button onclick="items[${this.index}].leaveComment()">Submit</button>
+                                                 <div class="commentList">${this.renderComments()}</div>`;
+                } else {
+                    this.commentsDiv.style.display = "none";
+                }
+            }
+
+            leaveComment() {
+                const commentInput = this.commentsDiv.querySelector("input");
+                const commentText = commentInput.value.trim();
+                if (commentText !== "") {
+                    this.comments.push(commentText);
+                    const commentsListDiv = this.commentsDiv.querySelector(".commentList");
+                    commentsListDiv.innerHTML = this.renderComments();
+                    commentInput.value = "";
+                }
+            }
+
+            renderComments() {
+                return this.comments.map(comment => `<p>${comment}</p>`).join("");
+            }
+        }
+
+        const itemsData = [
+            { name: "Allegiant Giving", number: 1 },
+            { name: "7 Eagle", number: 1 },
+            { name: "Adobe", number: 1 },
+            // Add more items here if needed
+        ];
+
+        const itemsContainer = document.getElementById("itemsContainer");
+        const items = [];
+
+        itemsData.forEach((itemData) => {
+            const item = new Item(itemData.name, itemData.number);
+            items.push(item);
+            itemsContainer.appendChild(item.element);
+        });
+
+        function updateSortOrder() {
+    items.sort((a, b) => b.number - a.number);
+    itemsContainer.innerHTML = ""; // Clear the old container
+
+    // Create a new container and add sorted items
+    const newItemsContainer = document.createElement("div");
+    items.forEach((item) => {
+        newItemsContainer.appendChild(item.element);
+    });
+
+    // Append the new container to the itemsContainer
+    itemsContainer.appendChild(newItemsContainer);
+
+    // Restore event listeners for submit comment buttons
+    items.forEach((item, index) => {
+        const submitCommentButton = item.element.querySelector(".comments button");
+        submitCommentButton.addEventListener("click", () => item.leaveComment());
+    });
+}
+
+        items.forEach((item, index) => {
+            item.index = index;
+            item.increaseButton.addEventListener("click", () => {
+                item.number++;
+                item.numberSpan.textContent = item.number;
+                updateSortOrder();
+            });
+
+            item.decreaseButton.addEventListener("click", () => {
+                if (item.number > 0) {
+                    item.number--;
+                    item.numberSpan.textContent = item.number;
+                    updateSortOrder();
+                }
+            });
         });
     </script>
 </body>
